@@ -21,7 +21,7 @@ public class ReservationQueueConsumer {
     private final ReservationHandler reservationHandler;
     private final QueueMetricsService queueMetricsService;
     private final ObjectMapper objectMapper;
-    private final ScheduledExecutorService executorService = Executors.newScheduledThreadPool(32); // 병렬 워커
+    private final ScheduledExecutorService executorService = Executors.newScheduledThreadPool(12); // 병렬 워커
     private boolean isProcessorRunning = false; // 상태 플래그
 
     public synchronized void startQueueProcessor(RedisQueueService redisQueueService) {
@@ -35,8 +35,8 @@ public class ReservationQueueConsumer {
                 executorService.submit(() -> {
                     while (isProcessorRunning) {
                         try {
-                            processQueue(350, redisQueueService); // 배치 크기
-                            Thread.sleep(50);
+                            processQueue(250, redisQueueService); // 배치 크기
+                            Thread.sleep(100);
                         } catch (InterruptedException e) {
                             Thread.currentThread().interrupt(); // 스레드 인터럽트 처리
                             log.warn("큐 프로세서 스레드 인터럽트");

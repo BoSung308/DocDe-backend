@@ -5,6 +5,8 @@ import com.docde.common.aop.Lockable;
 import com.docde.common.enums.UserRole;
 import com.docde.common.exceptions.ApiException;
 import com.docde.domain.auth.entity.AuthUser;
+import com.docde.domain.doctor.repository.DoctorRepository;
+import com.docde.domain.patient.repository.PatientRepository;
 import com.docde.domain.reservation.cache.RedisCacheService;
 import com.docde.domain.reservation.dto.ReservationPatientRequest;
 import com.docde.domain.reservation.entity.Reservation;
@@ -34,6 +36,8 @@ public class ReservationPatientService {
     private static final long TRAFFIC_CHECK_PERIOD = 60 * 1000; // 1분 (밀리초 단위)
     private final Queue<Long> requestTimestamps = new ConcurrentLinkedQueue<>();
     private final MeterRegistry meterRegistry;
+    private final DoctorRepository doctorRepository;
+    private final PatientRepository patientRepository;
 
     public Reservation createReservation(Long doctorId, LocalDateTime reservationTime, String reservationReason, AuthUser authUser) {
 
@@ -57,7 +61,8 @@ public class ReservationPatientService {
     }
 
 
-    private boolean HighTraffic() {
+
+/*    private boolean HighTraffic() {
         long now = System.currentTimeMillis();
 
         // 1분이 지난 요청 타임스탬프 제거
@@ -74,7 +79,8 @@ public class ReservationPatientService {
 
         // 초당 요청 속도가 특정 기준 이상일 경우 고트래픽으로 판단
         return requestsPerSecond > 2000.0;
-    }
+    }*/
+
 
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
@@ -102,6 +108,63 @@ public class ReservationPatientService {
 
         return reservation;
     }
+
+//    /**
+//     * 예약 생성 로직
+//     *
+//     * @param doctorId          예약할 의사의 ID
+//     * @param reservationTime   예약 시간
+//     * @param reservationReason 예약 사유
+//     * @param authUser          인증된 사용자 정보
+//     * @return 생성된 예약 엔티티
+//     */
+/*    public Reservation createReservation(Long doctorId, LocalDateTime reservationTime, String reservationReason, AuthUser authUser) {
+        // 의사 정보 가져오기
+        Doctor doctor = doctorRepository.findById(doctorId)
+                .orElseThrow(() -> new IllegalArgumentException("Doctor not found with ID: " + doctorId));
+
+        // 환자 정보 가져오기
+        Long patientId = authUser.getPatientId(); // AuthUser에서 환자 ID 가져오기
+        Patient patient = patientRepository.findById(patientId)
+                .orElseThrow(() -> new IllegalArgumentException("Patient not found with ID: " + patientId));
+
+        // 예약 생성
+        Reservation reservation = Reservation.builder()
+                .status(ReservationStatus.WAITING_RESERVATION)
+                .reservationTime(reservationTime)
+                .reservationReason(reservationReason)
+                .doctor(doctor)
+                .patient(patient)
+                .build();
+
+        // 예약 저장
+        return reservationRepository.save(reservation);
+    }*/
+
+
+
+/*    private boolean HighTraffic() {
+        long now = System.currentTimeMillis();
+
+        // 1분이 지난 요청 타임스탬프 제거
+        while (!requestTimestamps.isEmpty() && now - requestTimestamps.peek() > TRAFFIC_CHECK_PERIOD) {
+            requestTimestamps.poll();
+        }
+
+        // 현재 요청 추가
+        requestTimestamps.add(now);
+
+        // 초당 요청 속도 계산
+        long elapsedTime = Math.max(1, (now - requestTimestamps.peek())); // 첫 요청 이후 경과 시간(ms)
+        double requestsPerSecond = (double) requestTimestamps.size() / (elapsedTime / 1000.0);
+
+        // 초당 요청 속도가 특정 기준 이상일 경우 고트래픽으로 판단
+        return requestsPerSecond > 2000.0;
+    }*/
+
+
+
+
 
 
     @Transactional
